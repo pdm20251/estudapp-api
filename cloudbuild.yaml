@@ -6,7 +6,7 @@ substitutions:
 steps:
 
   # Build e push da imagem usando Jib
-  - name: 'gradle:7.6.0-jdk17'
+  - name: 'gradle:8.14-jdk17'
     entrypoint: 'gradle'
     args: 
       - 'jib'
@@ -26,13 +26,14 @@ steps:
       - '--platform=managed'
       - '--allow-unauthenticated'
       - '--port=8080'
-      - '--memory=512Mi'
-      - '--cpu=1'
+      - '--memory=1Gi'
+      - '--cpu=2'
       - '--min-instances=0'
       - '--max-instances=10'
-      - '--timeout=300s'
+      - '--timeout=900s'
       - '--ingress=all'
       - '--no-cpu-throttling'
+      - '--service-account=firebase-adminsdk-fbsvc@estudapp-71947.iam.gserviceaccount.com'
 
 # Configurações opcionais
 options:
