@@ -1,6 +1,5 @@
 package com.estudoapp.infrastructure.http
 
-
 import com.estudoapp.domain.Deck
 import com.estudoapp.domain.UserPrincipal
 import com.estudoapp.domain.repositories.DeckRepository
@@ -36,10 +35,10 @@ fun Route.deckRoutes() {
         }
 
         post("/my-decks") {
-            val principal = call.principal<UserPrincipal>()!!
+            val principal = call.principal<UserPrincipal>()
             val deckRequest = call.receive<Deck>()
 
-            val createdDeck = deckRepository.create(deckRequest, principal.uid)
+            val createdDeck = deckRepository.create(deckRequest, principal?.uid ?: "unknown")
             call.respond(createdDeck)
         }
     }

@@ -46,4 +46,20 @@ class  FireBaseDeckRepository: DeckRepository {
             deckWithId
         }
     }
+
+    override suspend fun findById(deckId: String, userId: String): Deck? {
+        val deckRef = database.child("decks").child(userId).child(deckId)
+
+        return suspendCoroutine { continuation ->
+            deckRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val deck = snapshot.getValue(Deck::class.java)
+                    continuation.resume(deck)
+                }
+                override fun onCancelled(error: DatabaseError) {
+                    continuation.resumeWithException(error.toException())
+                }
+            })
+        }
+    }
 }
