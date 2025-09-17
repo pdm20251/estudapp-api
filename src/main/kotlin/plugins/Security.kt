@@ -14,29 +14,78 @@ import java.io.FileInputStream
 
 
 fun Application.configureSecurity() {
+    println("🔐 Configurando Firebase")
+    
     if (FirebaseApp.getApps().isEmpty()) {
-        val serviceAccount = FileInputStream("src/main/resources/service-account-key.json")
-        val databaseUrl = "https://estudapp-71947-default-rtdb.firebaseio.com/"
-        val options = FirebaseOptions.builder()
-            .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-            .setDatabaseUrl(databaseUrl)
-            .build()
-        FirebaseApp.initializeApp(options)
+        try {
+
+            // Diferentes estratégias de autenticação
+            val credentials = when {
+                // 1. Cloud Run com service account específico
+                System.getenv("GOOGLE_APPLICATION_CREDENTIALS") != null -> {
+                    println("📋 Usando GOOGLE_APPLICATION_CREDENTIALS: ${System.getenv("GOOGLE_APPLICATION_CREDENTIALS")}")
+                    GoogleCredentials.getApplicationDefault()
+                }
+                
+                // 2. Credenciais do metadata server (Cloud Run padrão)
+                System.getenv("K_SERVICE") != null -> {
+                    println("☁️ Usando credenciais do metadata server")
+                    GoogleCredentials.getApplicationDefault()
+                }
+                
+                // 3. Arquivo local (desenvolvimento)
+                java.io.File("src/main/resources/service-account-key.json").exists() -> {
+                    println("🏠 Usando arquivo local service-account-key.json")
+                    GoogleCredentials.fromStream(
+                        FileInputStream("src/main/resources/service-account-key.json")
+                    )
+                }
+                
+                // 4. Fallback para ADC
+                else -> {
+                    println("🔄 Fallback: tentando credenciais padrão")
+                    GoogleCredentials.getApplicationDefault()
+                }
+            }
+            
+            val options = FirebaseOptions.builder()
+                .setCredentials(credentials)
+                .setDatabaseUrl("https://estudapp-71947-default-rtdb.firebaseio.com/")
+                .setProjectId("estudapp-71947")
+                .build()
+                
+            FirebaseApp.initializeApp(options)
+            
+            // Testar conexão
+            val auth = FirebaseAuth.getInstance()
+            println("✅ Firebase inicializado. Auth disponível: ${auth != null}")
+            
+        } catch (e: Exception) {
+            println("❌ Falha crítica ao inicializar Firebase")
+            println("Erro: ${e.message}")
+            println("Stacktrace:")
+            e.printStackTrace()
+            
+            // Informações de debug
+            println("\n🔍 DEBUG INFO:")
+            println("K_SERVICE: ${System.getenv("K_SERVICE")}")
+            println("GOOGLE_APPLICATION_CREDENTIALS: ${System.getenv("GOOGLE_APPLICATION_CREDENTIALS")}")
+            println("GAE_ENV: ${System.getenv("GAE_ENV")}")
+            
+            throw e
+        }
     }
 
     authentication {
-        bearer("firebase-auth") {  // 👉 troquei para bearer em vez de jwt
+        bearer("firebase-auth") {
             authenticate { tokenCredential ->
-                val token = tokenCredential.token  // aqui vem o Bearer cru
+                val token = tokenCredential.token
                 try {
                     val decoded = FirebaseAuth.getInstance().verifyIdToken(token)
-
-                    println("[DEBUG] Token válido para uid: ${decoded.uid}")
-
-                    // Se o token é válido, devolvemos o principal
+                    println("[AUTH] Token válido para uid: ${decoded.uid}")
                     UserPrincipal(uid = decoded.uid)
                 } catch (e: Exception) {
-                    println("❌ Erro ao verificar token Firebase: ${e.message}")
+                    println("[AUTH] Token inválido: ${e.message}")
                     null
                 }
             }

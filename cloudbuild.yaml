@@ -1,0 +1,44 @@
+# Substitutions para variáveis
+substitutions:
+  _SERVICE_NAME: 'estudapp-api'
+  _REGION: 'southamerica-east1'
+
+steps:
+
+  # Build e push da imagem usando Jib
+  - name: 'gradle:8.14-jdk17'
+    entrypoint: 'gradle'
+    args: 
+      - 'jib'
+      - '--image=gcr.io/$PROJECT_ID/${_SERVICE_NAME}:$BUILD_ID'
+    env:
+      - 'GRADLE_OPTS=-Dorg.gradle.daemon=false'
+
+  # Deploy para Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - '${_SERVICE_NAME}'
+      - '--image=gcr.io/$PROJECT_ID/${_SERVICE_NAME}:$BUILD_ID'
+      - '--region=${_REGION}'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--port=8080'
+      - '--memory=1Gi'
+      - '--cpu=2'
+      - '--min-instances=0'
+      - '--max-instances=10'
+      - '--timeout=900s'
+      - '--ingress=all'
+      - '--no-cpu-throttling'
+      - '--service-account=firebase-adminsdk-fbsvc@estudapp-71947.iam.gserviceaccount.com'
+
+# Configurações opcionais
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: 'E2_HIGHCPU_8'
+
+# Timeout do build
+timeout: '1200s'
