@@ -1,6 +1,9 @@
 # Created by https://www.toptal.com/developers/gitignore/api/kotlin,intellij,androidstudio
 # Edit at https://www.toptal.com/developers/gitignore?templates=kotlin,intellij,androidstudio
 
+### Firebase ###
+service-account-key.json
+
 ### Intellij ###
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
 # Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
