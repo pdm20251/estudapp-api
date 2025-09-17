@@ -106,4 +106,41 @@ class FirebaseFlashcardRepository : FlashcardRepository {
             finalFlashcard
         }
     }
+
+    override suspend fun findAllByDeckId(deckId: String, userId: String): List<Flashcard> {
+        val ownerCheckRef = database.child("decks").child(userId).child(deckId)
+
+        val isOwner = suspendCoroutine<Boolean> { continuation ->
+            ownerCheckRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    continuation.resume(snapshot.exists())
+                }
+                override fun onCancelled(error: DatabaseError) {
+                    continuation.resumeWithException(error.toException())
+                }
+            })
+        }
+
+        if (!isOwner) {
+            println("[SECURITY] Tentativa de acesso negada ao deck '$deckId' pelo usuário '$userId'.")
+            return emptyList()
+        }
+
+        val flashcardsRef = database.child("flashcards").child(deckId)
+        return suspendCoroutine { continuation ->
+            flashcardsRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    if (!snapshot.exists()) {
+                        continuation.resume(emptyList())
+                        return
+                    }
+                    val flashcards = snapshot.children.mapNotNull { it.toFlashcard() }
+                    continuation.resume(flashcards)
+                }
+                override fun onCancelled(error: DatabaseError) {
+                    continuation.resumeWithException(error.toException())
+                }
+            })
+        }
+    }
 }

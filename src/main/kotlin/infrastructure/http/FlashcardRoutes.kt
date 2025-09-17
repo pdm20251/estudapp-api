@@ -30,13 +30,11 @@ fun Route.flashcardRoutes() {
     val validateUseCase = ValidateFlashcardAnswerUseCase(flashcardRepository, geminiService)
 
     val deckRepository: DeckRepository = FireBaseDeckRepository()
-
-    val generateUseCase = GenerateFlashcardUseCase(deckRepository)
+    val generateUseCase = GenerateFlashcardUseCase(deckRepository, flashcardRepository)
 
     authenticate("firebase-auth") {
         post("/flashcards/validate") {
             val request = call.receive<ValidateAnswerRequest>()
-            // A chamada ao UseCase agora executa o fluxo completo
             val response = validateUseCase.execute(
                 deckId = request.deckId,
                 flashcardId = request.flashcardId,
@@ -46,7 +44,6 @@ fun Route.flashcardRoutes() {
         }
 
         route("/decks/{deckId}/flashcards") {
-            // Middleware de checagem de posse do deck
             intercept(ApplicationCallPipeline.Call) {
                 val principal = call.principal<UserPrincipal>()!!
                 val deckId = call.parameters["deckId"] ?: return@intercept call.respond(HttpStatusCode.BadRequest)
@@ -55,17 +52,17 @@ fun Route.flashcardRoutes() {
                 if (deck == null) {
                     return@intercept call.respond(HttpStatusCode.Forbidden, "Este deck não pertence a você.")
                 }
-                // Se o deck existe e pertence ao usuário, a requisição continua.
+
             }
 
-            // GET .../decks/{deckId}/flashcards - Lista todos os flashcards do deck
+
             post("/generate") {
                 val principal = call.principal<UserPrincipal>()!!
                 val deckId = call.parameters["deckId"] ?: return@post call.respond(HttpStatusCode.BadRequest, "ID do Deck não fornecido")
                 val request = call.receive<GenerateFlashcardRequest>()
 
                 try {
-                    // Chama o UseCase para executar toda a lógica de negócio
+
                     val generatedFlashcard = generateUseCase.execute(
                         deckId = deckId,
                         userId = principal.uid,
@@ -73,10 +70,10 @@ fun Route.flashcardRoutes() {
                         userComment = request.userComment
                     )
 
-                    // Retorna o flashcard "mock" gerado com sucesso
+
                     call.respond(HttpStatusCode.OK, generatedFlashcard)
                 } catch (e: Exception) {
-                    // Se o deck não for encontrado ou o tipo for inválido, retorna um erro claro
+
                     call.respond(HttpStatusCode.InternalServerError, "Erro ao gerar flashcard: ${e.message}")
                 }
             }
