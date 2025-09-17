@@ -34,6 +34,7 @@ steps:
       - '--ingress=all'
       - '--no-cpu-throttling'
       - '--service-account=firebase-adminsdk-fbsvc@estudapp-71947.iam.gserviceaccount.com'
+      - '--update-secrets=GEMINI_API_KEY=gemini-api-key:latest'
 
 # Configurações opcionais
 options:
