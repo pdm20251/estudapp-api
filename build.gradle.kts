@@ -16,6 +16,9 @@ repositories {
 }
 
 dependencies {
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.cio)
+    implementation(libs.ktor.client.content.negotiation)
     implementation("com.google.firebase:firebase-admin:9.2.0")
     implementation(libs.ktor.server.call.logging)
     implementation(libs.ktor.server.auth)
