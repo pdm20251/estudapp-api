@@ -1,0 +1,87 @@
+package com.estudoapp.domain
+
+import com.google.firebase.database.IgnoreExtraProperties
+import kotlinx.serialization.Serializable
+
+
+@Serializable
+@IgnoreExtraProperties
+sealed class Flashcard {
+    abstract val id: String?
+    abstract val deckId: String?
+    abstract val userId: String?
+    abstract val type: String?
+    abstract val fatorFacilidade: Double?
+    abstract val repeticoes: Int?
+    abstract val intervaloEmDias: Int?
+    abstract val proximaRevisaoTimestamp: Long?
+}
+
+
+@Serializable
+@IgnoreExtraProperties
+data class FrenteVersoFlashcard(
+    override val id: String? = "",
+    override val deckId: String? = "",
+    override val userId: String? = "",
+    override val type: String? = "FRENTE_VERSO",
+    override val fatorFacilidade: Double? = 2.5,
+    override val repeticoes: Int? = 0,
+    override val intervaloEmDias: Int? = 1,
+    override val proximaRevisaoTimestamp: Long? = 0L,
+    val frente: String? = "",
+    val verso: String? = ""
+) : Flashcard()
+
+@Serializable
+@IgnoreExtraProperties
+data class ClozeFlashcard(
+    override val id: String? = "",
+    override val deckId: String? = "",
+    override val userId: String? = "",
+    override val type: String? = "CLOZE",
+    override val fatorFacilidade: Double? = 2.5,
+    override val repeticoes: Int? = 0,
+    override val intervaloEmDias: Int? = 1,
+    override val proximaRevisaoTimestamp: Long? = 0L,
+    val textoComLacunas: String? = "",
+    val respostasCloze: Map<String, String>? = emptyMap()
+) : Flashcard()
+
+@Serializable
+@IgnoreExtraProperties
+data class DigiteRespostaFlashcard(
+    override val id: String? = "",
+    override val deckId: String? = "",
+    override val userId: String? = "",
+    override val type: String? = "DIGITE_RESPOSTA",
+    override val fatorFacilidade: Double? = 2.5,
+    override val repeticoes: Int? = 0,
+    override val intervaloEmDias: Int? = 1,
+    override val proximaRevisaoTimestamp: Long? = 0L,
+    val pergunta: String? = "",
+    val respostasValidas: List<String>? = emptyList()
+) : Flashcard()
+
+@Serializable
+@IgnoreExtraProperties
+data class MultiplaEscolhaFlashcard(
+    override val id: String? = "",
+    override val deckId: String? = "",
+    override val userId: String? = "",
+    override val type: String? = "MULTIPLA_ESCOLHA",
+    override val fatorFacilidade: Double? = 2.5,
+    override val repeticoes: Int? = 0,
+    override val intervaloEmDias: Int? = 1,
+    override val proximaRevisaoTimestamp: Long? = 0L,
+    val pergunta: String? = "",
+    val alternativas: List<Alternativa>? = emptyList(),
+    val respostaCorreta: String? = ""
+) : Flashcard()
+
+@Serializable
+@IgnoreExtraProperties
+data class Alternativa(
+    val text: String? = "",
+    val isCorrect: Boolean? = false
+)
