@@ -19,19 +19,13 @@ fun Route.chatRoutes() {
     authenticate("firebase-auth") {
         post("/chat/respond") {
             val principal = call.principal<UserPrincipal>()!!
-            val request = call.receive<ChatRequest>()
-
-            val userMessage = ChatMessage(
-                sender = "USER",
-                text = request.text
-            )
 
             // ✅ A MÁGICA DO "FIRE-AND-FORGET" ✅
             // Lançamos uma nova coroutine que rodará em segundo plano.
             // O código dentro do launch { ... } não bloqueará a resposta.
             // ✅ A CORREÇÃO É APENAS ADICIONAR "call." AQUI ✅
             call.launch {
-                processChatUseCase.execute(principal.uid, userMessage)
+                processChatUseCase.execute(principal.uid)
             }
 
             call.respond(HttpStatusCode.Accepted)
