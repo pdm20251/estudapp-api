@@ -2,11 +2,7 @@ package com.estudoapp.infrastructure.persistence
 
 import com.estudoapp.domain.model.Deck
 import com.estudoapp.domain.repositories.DeckRepository
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.UUID
@@ -37,13 +33,22 @@ class  FireBaseDeckRepository: DeckRepository {
         }
     }
 
+    // CORRIGIDO: Removido o .await() e usando o padrão do Firebase
     override suspend fun create(deck: Deck, userId: String): Deck {
         return withContext(Dispatchers.IO) {
             val decksRef = database.child("decks").child(userId)
             val newId = decksRef.push().key ?: UUID.randomUUID().toString()
             val deckWithId = deck.copy(id = newId)
-            decksRef.child(newId).setValueAsync(deckWithId).get()
-            deckWithId
+
+            suspendCoroutine<Deck> { continuation ->
+                decksRef.child(newId).setValue(deckWithId) { error, _ ->
+                    if (error == null) {
+                        continuation.resume(deckWithId)
+                    } else {
+                        continuation.resumeWithException(error.toException())
+                    }
+                }
+            }
         }
     }
 
@@ -60,6 +65,21 @@ class  FireBaseDeckRepository: DeckRepository {
                     continuation.resumeWithException(error.toException())
                 }
             })
+        }
+    }
+
+    // CORRIGIDO: Removido o .await() e usando o padrão do Firebase
+    override suspend fun update(deckId: String, userId: String, updates: Map<String, Any?>) {
+        withContext(Dispatchers.IO) {
+            suspendCoroutine<Unit> { continuation ->
+                database.child("decks").child(userId).child(deckId).updateChildren(updates) { error, _ ->
+                    if (error == null) {
+                        continuation.resume(Unit)
+                    } else {
+                        continuation.resumeWithException(error.toException())
+                    }
+                }
+            }
         }
     }
 }
