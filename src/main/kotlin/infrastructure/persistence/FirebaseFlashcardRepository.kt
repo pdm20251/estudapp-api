@@ -13,6 +13,7 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import java.util.UUID
 import kotlin.coroutines.resume
@@ -141,6 +142,34 @@ class FirebaseFlashcardRepository : FlashcardRepository {
 
             flashcardsRef.child(newId).setValueAsync(finalFlashcard).get()
             finalFlashcard
+        }
+    }
+
+    override suspend fun saveAll(flashcards: List<Flashcard>) {
+        if (flashcards.isEmpty()) {
+            return
+        }
+
+        val childUpdates = mutableMapOf<String, Any?>()
+        flashcards.forEach { flashcard ->
+            val deckId = requireNotNull(flashcard.deckId) { "O deckId não pode ser nulo." }
+            val flashcardId = requireNotNull(flashcard.id) { "O id não pode ser nulo." }
+
+            val path = "/flashcards/$deckId/$flashcardId"
+            childUpdates[path] = flashcard
+        }
+
+        return suspendCancellableCoroutine { continuation ->
+            val completionListener = object : DatabaseReference.CompletionListener {
+                override fun onComplete(error: DatabaseError?, ref: DatabaseReference) {
+                    if (error == null) {
+                        continuation.resume(Unit)
+                    } else {
+                        continuation.resumeWithException(error.toException())
+                    }
+                }
+            }
+            database.updateChildren(childUpdates, completionListener)
         }
     }
 }
