@@ -1,12 +1,10 @@
 package com.estudoapp.plugins
 
-import com.estudoapp.domain.UserPrincipal
+import com.estudoapp.domain.model.UserPrincipal
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import com.google.firebase.auth.FirebaseAuth
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.auth.HttpAuthHeader
 import io.ktor.server.application.Application
 import io.ktor.server.auth.authentication
 import io.ktor.server.auth.bearer

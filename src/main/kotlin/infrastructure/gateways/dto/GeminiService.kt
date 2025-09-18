@@ -31,10 +31,12 @@ class GeminiService() {
             contents = listOf(Content(parts = listOf(Part(text = prompt))))
         )
 
+
             val response: GeminiResponse = client.post(apiUrl) {
                 contentType(ContentType.Application.Json)
                 setBody(requestBody)
             }.body()
+
 
             val rawText = response.candidates.firstOrNull()?.content?.parts?.firstOrNull()?.text
                 ?: throw Exception("Resposta da IA em formato inesperado ou vazia.")

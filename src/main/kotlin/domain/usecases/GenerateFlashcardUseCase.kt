@@ -1,14 +1,19 @@
 package com.estudoapp.domain.usecases
 
-import com.estudoapp.domain.Alternativa
-import com.estudoapp.domain.Flashcard
-import com.estudoapp.domain.FrenteVersoFlashcard
-import com.estudoapp.domain.MultiplaEscolhaFlashcard
+import com.estudoapp.domain.model.Alternativa
+import com.estudoapp.domain.model.ClozeFlashcard
+import com.estudoapp.domain.model.DigiteRespostaFlashcard
+import com.estudoapp.domain.model.Flashcard
+import com.estudoapp.domain.model.FrenteVersoFlashcard
+import com.estudoapp.domain.model.MultiplaEscolhaFlashcard
 import com.estudoapp.domain.repositories.DeckRepository
+import com.estudoapp.domain.repositories.FlashcardRepository
+import com.estudoapp.infrastructure.gateways.dto.GeminiService
 import java.util.UUID
 
 class GenerateFlashcardUseCase(
-    private val deckRepository: DeckRepository
+    private val deckRepository: DeckRepository,
+    private val flashcardRepository: FlashcardRepository
 ) {
     /**
      * Orquestra a geração de um novo flashcard.
@@ -19,7 +24,24 @@ class GenerateFlashcardUseCase(
         val deck = deckRepository.findById(deckId, userId)
             ?: throw Exception("Deck com id '$deckId' não foi encontrado ou não pertence a este usuário.")
 
+        val existingFlashcards = flashcardRepository.findAllByDeckId(deckId, userId)
+
+        val existingCardsContext = if (existingFlashcards.isNotEmpty()) {
+            "Para evitar repetição, aqui estão alguns flashcards já existentes neste deck:\n" +
+                    existingFlashcards.take(5).joinToString("\n") { card ->
+                        when (card) {
+                            is FrenteVersoFlashcard -> "- Pergunta: '${card.frente}'"
+                            is DigiteRespostaFlashcard -> "- Pergunta: '${card.pergunta}'"
+                            is MultiplaEscolhaFlashcard -> "- Pergunta: '${card.pergunta}'"
+                            is ClozeFlashcard -> "- Texto: '${card.textoComLacunas}'"
+                        }
+                    }
+        } else {
+            "Este é o primeiro flashcard a ser criado neste deck."
+        }
+
         println("[API LOG] Requisição para gerar flashcard do tipo '$requestedType' para o deck '${deck.name}'.")
+        println("[API LOG] Contexto dos Cards: $existingCardsContext")
         println("[API LOG] Comentário do usuário: '${userComment ?: "Nenhum"}'")
 
         // Requisito 2: Gera um flashcard de exemplo (mock)
