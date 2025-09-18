@@ -10,7 +10,10 @@ import kotlinx.serialization.json.Json
 fun Application.configureSerialization() {
     install(ContentNegotiation) {
         json(Json {
-            classDiscriminator = "_type"
+            // CORREÇÃO: Alterado de "_type" para "type" para corresponder
+            // ao JSON retornado pela IA e à sua sealed class `Flashcard`.
+            classDiscriminator = "type"
+            ignoreUnknownKeys = true // Mantido por segurança
         })
     }
 }

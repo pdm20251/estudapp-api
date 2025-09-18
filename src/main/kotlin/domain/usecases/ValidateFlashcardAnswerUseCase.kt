@@ -42,7 +42,9 @@ class ValidateFlashcardAnswerUseCase(
             }
 
             is ClozeFlashcard, is FrenteVersoFlashcard, is MultiplaEscolhaFlashcard -> {
-                throw UnsupportedOperationException("Validação por IA não suportada para o tipo ${flashcard.type}")
+                // CORREÇÃO: Usamos 'flashcard::class.simpleName' para obter o nome do tipo
+                // em vez da propriedade 'type' que foi removida.
+                throw UnsupportedOperationException("Validação por IA não suportada para o tipo ${flashcard::class.simpleName}")
             }
         }
     }

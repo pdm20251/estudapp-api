@@ -22,7 +22,7 @@ class ProcessChatResponseUseCase(
             println("[CHAT BACKGROUND] Prompt que seria enviado para a IA:\n$prompt")
 
             // 4. Rodar o prompt na LLM (MOCK)
-            // val llmTextResponse = geminiService.generateChatResponse(prompt)
+            // val llmTextResponse = geminiService.generateChatResponse(prompt) //Usar retorno do Gemini
             val llmTextResponse = "Esta é uma resposta automática da API. A IA está desativada."
 
             // 5. Armazenar no firebase a resposta da LLM
