@@ -129,8 +129,8 @@ class FirebaseFlashcardRepository : FlashcardRepository {
 
     override suspend fun create(deckId: String, userId: String, flashcard: Flashcard): Flashcard {
         return withContext(Dispatchers.IO) {
-            // val flashcardsRef = database.child("flashcards").child(deckId)
-            val newId = UUID.randomUUID().toString()
+            val flashcardsRef = database.child("flashcards").child(deckId)
+            val newId = flashcardsRef.push().key ?: UUID.randomUUID().toString()
 
             // Criamos o objeto final para salvar no banco, garantindo a consistência dos IDs
             val finalFlashcard = when(flashcard) {
@@ -140,7 +140,7 @@ class FirebaseFlashcardRepository : FlashcardRepository {
                 is MultiplaEscolhaFlashcard -> flashcard.copy(id = newId, deckId = deckId, userId = userId)
             }
 
-//            flashcardsRef.child(newId).setValueAsync(finalFlashcard).get()
+            flashcardsRef.child(newId).setValueAsync(finalFlashcard).get()
             finalFlashcard
         }
     }
