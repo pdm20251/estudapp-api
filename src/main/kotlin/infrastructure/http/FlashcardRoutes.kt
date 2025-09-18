@@ -23,20 +23,17 @@ import io.ktor.server.routing.route
 
 fun Route.flashcardRoutes() {
 
-
-
     val flashcardRepository = FirebaseFlashcardRepository()
-    val geminiService = GeminiService()
-    val validateUseCase = ValidateFlashcardAnswerUseCase(flashcardRepository, geminiService)
-
+    val geminiService = GeminiService() // Instanciado aqui
     val deckRepository: DeckRepository = FireBaseDeckRepository()
 
-    val generateUseCase = GenerateFlashcardUseCase(deckRepository, flashcardRepository)
+    val validateUseCase = ValidateFlashcardAnswerUseCase(flashcardRepository, geminiService)
+    // Injetando o geminiService no construtor
+    val generateUseCase = GenerateFlashcardUseCase(deckRepository, flashcardRepository, geminiService)
 
     authenticate("firebase-auth") {
         post("/flashcards/validate") {
             val request = call.receive<ValidateAnswerRequest>()
-            // A chamada ao UseCase agora executa o fluxo completo
             val response = validateUseCase.execute(
                 deckId = request.deckId,
                 flashcardId = request.flashcardId,
@@ -46,7 +43,6 @@ fun Route.flashcardRoutes() {
         }
 
         route("/decks/{deckId}/flashcards") {
-            // Middleware de checagem de posse do deck
             intercept(ApplicationCallPipeline.Call) {
                 val principal = call.principal<UserPrincipal>()!!
                 val deckId = call.parameters["deckId"] ?: return@intercept call.respond(HttpStatusCode.BadRequest)
@@ -55,7 +51,6 @@ fun Route.flashcardRoutes() {
                 if (deck == null) {
                     return@intercept call.respond(HttpStatusCode.Forbidden, "Este deck não pertence a você.")
                 }
-                // Se o deck existe e pertence ao usuário, a requisição continua.
             }
 
 
@@ -66,7 +61,7 @@ fun Route.flashcardRoutes() {
 
 
                 try {
-
+                    // 1. Gera o flashcard usando a IA
                     val generatedFlashcard = generateUseCase.execute(
                         deckId = deckId,
                         userId = principal.uid,
@@ -74,14 +69,15 @@ fun Route.flashcardRoutes() {
                         userComment = request.userComment
                     )
 
+                    // 2. Salva o flashcard gerado no banco de dados
+                    val savedFlashcard = flashcardRepository.create(deckId, principal.uid, generatedFlashcard)
 
-                    call.respond(HttpStatusCode.OK, generatedFlashcard)
+
+                    call.respond(HttpStatusCode.Created, savedFlashcard)
                 } catch (e: Exception) {
-
                     call.respond(HttpStatusCode.InternalServerError, "Erro ao gerar flashcard: ${e.message}")
                 }
             }
-
         }
     }
 }
