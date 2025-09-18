@@ -69,11 +69,12 @@ fun Route.flashcardRoutes() {
                         userComment = request.userComment
                     )
 
+                    // tirei a parte de salvar o flashcard no banco só vai retornar a resposta na api.
                     // 2. Salva o flashcard gerado no banco de dados
-                    val savedFlashcard = flashcardRepository.create(deckId, principal.uid, generatedFlashcard)
+                    val flashcard = flashcardRepository.create(deckId, principal.uid, generatedFlashcard)
 
 
-                    call.respond(HttpStatusCode.Created, savedFlashcard)
+                    call.respond(HttpStatusCode.Created, flashcard)
                 } catch (e: Exception) {
                     call.respond(HttpStatusCode.InternalServerError, "Erro ao gerar flashcard: ${e.message}")
                 }
