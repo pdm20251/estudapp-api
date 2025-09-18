@@ -23,18 +23,11 @@ fun Route.chatRoutes() {
     authenticate("firebase-auth") {
         post("/chat/respond") {
             val principal = call.principal<UserPrincipal>()!!
-            val request = call.receive<ChatRequest>()
-
-            // Cria o objeto ChatMessage a partir da requisição
-            val userMessage = ChatMessage(
-                sender = "USER",
-                text = request.text
-            )
 
             // A lógica "fire-and-forget" continua a mesma, mas agora
             // passamos a mensagem do usuário para o UseCase.
             call.launch {
-                processChatUseCase.execute(principal.uid, userMessage)
+                processChatUseCase.execute(principal.uid)
             }
 
             // Responde imediatamente para o app não ficar travado esperando a IA

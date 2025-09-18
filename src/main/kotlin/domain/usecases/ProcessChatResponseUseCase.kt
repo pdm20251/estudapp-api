@@ -9,10 +9,10 @@ class ProcessChatResponseUseCase(
     private val chatRepository: ChatRepository,
     private val groqService: GroqService // Injetando o novo serviço
 ) {
-    suspend fun execute(userId: String, userMessage: ChatMessage) {
+    suspend fun execute(userId: String) {
         try {
             // 1. Salva a mensagem do usuário que acabamos de receber
-            chatRepository.addMessage(userId, userMessage)
+            // chatRepository.addMessage(userId, userMessage)
 
             // 2. Busca o histórico recente para dar contexto à IA
             val history = chatRepository.getLatestMessages(userId, 10)
