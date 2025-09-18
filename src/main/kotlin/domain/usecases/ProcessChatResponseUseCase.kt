@@ -7,10 +7,10 @@ class ProcessChatResponseUseCase(
     private val chatRepository: ChatRepository
     // Futuramente: private val geminiService: GeminiService
 ) {
-    suspend fun execute(userId: String, userMessage: ChatMessage) {
+    suspend fun execute(userId: String) {
         try {
             // 1. A primeira coisa é salvar a mensagem do usuário que recebemos
-            chatRepository.addMessage(userId, userMessage)
+            // chatRepository.addMessage(userId, userMessage)
 
             // 2. Acessa o firebase e extrai as últimas N mensagens
             val history = chatRepository.getLatestMessages(userId, 10) // Pega as últimas 10
