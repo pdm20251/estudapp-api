@@ -1,6 +1,6 @@
 package com.estudoapp.infrastructure.persistence
 
-import com.estudoapp.domain.Deck
+import com.estudoapp.domain.model.Deck
 import com.estudoapp.domain.repositories.DeckRepository
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError

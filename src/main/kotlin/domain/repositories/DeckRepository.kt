@@ -1,6 +1,6 @@
 package com.estudoapp.domain.repositories
 
-import com.estudoapp.domain.Deck
+import com.estudoapp.domain.model.Deck
 
 interface DeckRepository {
     suspend fun findByUserId(userId: String): List<Deck>

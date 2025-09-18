@@ -1,9 +1,9 @@
 package com.estudoapp.domain.usecases
 
-import com.estudoapp.domain.ClozeFlashcard
-import com.estudoapp.domain.DigiteRespostaFlashcard
-import com.estudoapp.domain.FrenteVersoFlashcard
-import com.estudoapp.domain.MultiplaEscolhaFlashcard
+import com.estudoapp.domain.model.ClozeFlashcard
+import com.estudoapp.domain.model.DigiteRespostaFlashcard
+import com.estudoapp.domain.model.FrenteVersoFlashcard
+import com.estudoapp.domain.model.MultiplaEscolhaFlashcard
 import com.estudoapp.domain.repositories.FlashcardRepository
 import com.estudoapp.infrastructure.gateways.dto.GeminiService
 import com.estudoapp.infrastructure.http.dto.ValidateAnswerResponse

@@ -1,7 +1,7 @@
 package com.estudoapp.infrastructure.http
 
-import com.estudoapp.domain.Deck
-import com.estudoapp.domain.UserPrincipal
+import com.estudoapp.domain.model.Deck
+import com.estudoapp.domain.model.UserPrincipal
 import com.estudoapp.domain.repositories.DeckRepository
 import com.estudoapp.infrastructure.persistence.FireBaseDeckRepository
 import io.ktor.server.auth.authenticate

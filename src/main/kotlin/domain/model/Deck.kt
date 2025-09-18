@@ -1,4 +1,4 @@
-package com.estudoapp.domain
+package com.estudoapp.domain.model
 
 
 import kotlinx.serialization.Serializable

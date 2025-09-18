@@ -1,6 +1,6 @@
 package com.estudoapp.infrastructure.http
 
-import com.estudoapp.domain.UserPrincipal
+import com.estudoapp.domain.model.UserPrincipal
 import com.estudoapp.domain.repositories.DeckRepository
 import com.estudoapp.domain.usecases.GenerateFlashcardUseCase
 import com.estudoapp.domain.usecases.ValidateFlashcardAnswerUseCase
@@ -31,7 +31,7 @@ fun Route.flashcardRoutes() {
 
     val deckRepository: DeckRepository = FireBaseDeckRepository()
 
-    val generateUseCase = GenerateFlashcardUseCase(deckRepository)
+    val generateUseCase = GenerateFlashcardUseCase(deckRepository, flashcardRepository)
 
     authenticate("firebase-auth") {
         post("/flashcards/validate") {
@@ -58,14 +58,15 @@ fun Route.flashcardRoutes() {
                 // Se o deck existe e pertence ao usuário, a requisição continua.
             }
 
-            // GET .../decks/{deckId}/flashcards - Lista todos os flashcards do deck
+
             post("/generate") {
                 val principal = call.principal<UserPrincipal>()!!
                 val deckId = call.parameters["deckId"] ?: return@post call.respond(HttpStatusCode.BadRequest, "ID do Deck não fornecido")
                 val request = call.receive<GenerateFlashcardRequest>()
 
+
                 try {
-                    // Chama o UseCase para executar toda a lógica de negócio
+
                     val generatedFlashcard = generateUseCase.execute(
                         deckId = deckId,
                         userId = principal.uid,
@@ -73,10 +74,10 @@ fun Route.flashcardRoutes() {
                         userComment = request.userComment
                     )
 
-                    // Retorna o flashcard "mock" gerado com sucesso
+
                     call.respond(HttpStatusCode.OK, generatedFlashcard)
                 } catch (e: Exception) {
-                    // Se o deck não for encontrado ou o tipo for inválido, retorna um erro claro
+
                     call.respond(HttpStatusCode.InternalServerError, "Erro ao gerar flashcard: ${e.message}")
                 }
             }

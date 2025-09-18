@@ -1,5 +1,6 @@
 package com.estudoapp.plugins
 
+import com.estudoapp.infrastructure.http.chatRoutes
 import com.estudoapp.infrastructure.http.deckRoutes
 import com.estudoapp.infrastructure.http.flashcardRoutes
 import io.ktor.server.application.*
@@ -13,5 +14,6 @@ fun Application.configureRouting() {
         }
         deckRoutes()
         flashcardRoutes()
+        chatRoutes()
     }
 }
