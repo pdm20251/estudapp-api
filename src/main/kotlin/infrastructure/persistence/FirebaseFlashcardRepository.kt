@@ -13,6 +13,7 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import java.util.UUID
 import kotlin.coroutines.resume
@@ -128,8 +129,8 @@ class FirebaseFlashcardRepository : FlashcardRepository {
 
     override suspend fun create(deckId: String, userId: String, flashcard: Flashcard): Flashcard {
         return withContext(Dispatchers.IO) {
-            val flashcardsRef = database.child("flashcards").child(deckId)
-            val newId = flashcardsRef.push().key ?: UUID.randomUUID().toString()
+            // val flashcardsRef = database.child("flashcards").child(deckId)
+            val newId = UUID.randomUUID().toString()
 
             // Criamos o objeto final para salvar no banco, garantindo a consistência dos IDs
             val finalFlashcard = when(flashcard) {
@@ -139,8 +140,36 @@ class FirebaseFlashcardRepository : FlashcardRepository {
                 is MultiplaEscolhaFlashcard -> flashcard.copy(id = newId, deckId = deckId, userId = userId)
             }
 
-            flashcardsRef.child(newId).setValueAsync(finalFlashcard).get()
+//            flashcardsRef.child(newId).setValueAsync(finalFlashcard).get()
             finalFlashcard
+        }
+    }
+
+    override suspend fun saveAll(flashcards: List<Flashcard>) {
+        if (flashcards.isEmpty()) {
+            return
+        }
+
+        val childUpdates = mutableMapOf<String, Any?>()
+        flashcards.forEach { flashcard ->
+            val deckId = requireNotNull(flashcard.deckId) { "O deckId não pode ser nulo." }
+            val flashcardId = requireNotNull(flashcard.id) { "O id não pode ser nulo." }
+
+            val path = "/flashcards/$deckId/$flashcardId"
+            childUpdates[path] = flashcard
+        }
+
+        return suspendCancellableCoroutine { continuation ->
+            val completionListener = object : DatabaseReference.CompletionListener {
+                override fun onComplete(error: DatabaseError?, ref: DatabaseReference) {
+                    if (error == null) {
+                        continuation.resume(Unit)
+                    } else {
+                        continuation.resumeWithException(error.toException())
+                    }
+                }
+            }
+            database.updateChildren(childUpdates, completionListener)
         }
     }
 }
